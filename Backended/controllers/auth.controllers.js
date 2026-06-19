@@ -1,39 +1,110 @@
+import genToken from "../config/token.js";
 import User from "../models/user.model.js";
-import bcrypt from "bcryptjs"
+import bcrypt from "bcryptjs";
 
-export const signUp = async (req , res)=>{
+// SIGNUP
+export const signUp = async (req, res) => {
     try {
-        const {firstName , lastName , userName , email , password} = req.body; // taking data from the user
+        const { firstName, lastName, userName, email, password } = req.body;
 
-        let existEmail = await User.findOne({email}) // finding the email from the server if this email exist or not
-        
-        if(existEmail){
-            // console.log("Email Exist")
-            return res.status(400).json({message:"Email already exist!"})
+        const existEmail = await User.findOne({ email });
+
+        if (existEmail) {
+            return res.status(400).json({
+                message: "Email already exists!"
+            });
         }
 
-        let existUserName = await User.findOne({userName}) // again the username from the server if this username exist or not
-        if(existUserName){
-            // console.log("User Exist")
-            return res.status(400).json({message:"User already exist!"})
+        const existUserName = await User.findOne({ userName });
+
+        if (existUserName) {
+            return res.status(400).json({
+                message: "Username already exists!"
+            });
         }
-        const hassedPaswword = await bcrypt.hash(password , 10)  // in this step we hassed the password using bcryptjs -> in this step we just make the password strong
+
+        if (password.length < 8) {
+            return res.status(400).json({
+                message: "Password must be at least 8 characters!"
+            });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
 
         const user = await User.create({
             firstName,
             lastName,
-            email,
             userName,
-            password:hassedPaswword
-        }) // user ko basically databases me save karliaa
+            email,
+            password: hashedPassword
+        });
 
-        return res.status(200).json(user
-           
-        )
+        const token = genToken(user._id);
+
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+
+        return res.status(201).json({
+            message: "User Registered Successfully",
+            user
+        });
+
     } catch (error) {
-        res.status(500).json({
-            message:"Interval Servel Error"
-        })
-        console.log(error)
+        console.log(error);
+
+        return res.status(500).json({
+            message: "Internal Server Error"
+        });
     }
-}
+};
+
+// LOGIN
+export const login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        const existUser = await User.findOne({ email });
+
+        if (!existUser) {
+            return res.status(400).json({
+                message: "User not found!"
+            });
+        }
+
+        const match = await bcrypt.compare(
+            password,
+            existUser.password
+        );
+
+        if (!match) {
+            return res.status(400).json({
+                message: "Invalid Credentials!"
+            });
+        }
+
+        const token = genToken(existUser._id);
+
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+
+        return res.status(200).json({
+            message: "Login Successful",
+            user: existUser
+        });
+
+    } catch (error) {
+        console.log(error);
+
+        return res.status(500).json({
+            message: "Internal Server Error"
+        });
+    }
+};
