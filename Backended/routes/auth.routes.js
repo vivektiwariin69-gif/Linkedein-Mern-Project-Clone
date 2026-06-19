@@ -1,5 +1,5 @@
 import express from "express"
-import { signUp } from "../controllers/auth.controllers"
+import { signUp } from "../controllers/auth.controllers.js"
 
 let authRouter = express.Router() // means bas hamne poora express na lekar bas router wala part hi express module se liya
 

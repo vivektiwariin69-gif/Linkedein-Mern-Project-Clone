@@ -7,7 +7,7 @@ const userschema = new mongoose.Schema({
         type:String,
         required:true
     },
-    lasttName:{
+    lastName:{
         type:String,
         required:true
     },
@@ -16,7 +16,7 @@ const userschema = new mongoose.Schema({
         required:true,
         unique:true  // means username unique ho same na ho
     },
-    emailName:{
+    email:{
         type:String,
         required:true,
         unique:true
@@ -27,15 +27,15 @@ const userschema = new mongoose.Schema({
     },
      profileImage:{
         type:String,
-        required:true,
+        required:false,
     },
      coverImage:{
         type:String,
-        required:true,
+        required:false,
     },
      headline:{
         type:String,
-        required:true,
+        required:false,
     },
     skills:[{
         type:String
@@ -63,7 +63,7 @@ const userschema = new mongoose.Schema({
     ],
     connection:[{
         type:mongoose.Schema.Types.ObjectId,
-        ref:User
+        ref:"user"
     }]
 
 

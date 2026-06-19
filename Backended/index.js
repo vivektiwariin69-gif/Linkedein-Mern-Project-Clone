@@ -8,6 +8,7 @@ dotenv.config()
 
 let app = express()
 let port = process.env.PORT || 5000
+app.use(express.json());
 
 app.use("/api/auth" , authRouter) // http://localhost:8000/api/auth/signup
 app.get("/" , (req , res)=>{   
